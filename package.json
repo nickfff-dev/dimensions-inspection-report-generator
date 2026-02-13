@@ -1,0 +1,16 @@
+{
+  "name": "excel-gen",
+  "version": "1.0.0",
+  "description": "Excel generation web application for inspection reports",
+  "private": true,
+  "packageManager": "pnpm@10.20.0",
+  "scripts": {
+    "dev": "pnpm run --parallel dev",
+    "build": "pnpm run --recursive build",
+    "lint": "pnpm run --recursive lint",
+    "clean": "pnpm run --recursive clean"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
