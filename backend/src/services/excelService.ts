@@ -18,7 +18,7 @@ export class ExcelGeneratorService {
 
   constructor() {
     this.templatePath = path.join(__dirname, "../../templates/template.xlsx");
-    this.batchfileTemplatePath = path.join(__dirname, "../../templates/batchfile_template.xlsx");
+    this.batchfileTemplatePath = path.join(__dirname, "../../templates/coverback_template.xlsx");
     this.outputDir = path.join(__dirname, "../../generated");
     this.ensureOutputDirectory();
   }
@@ -127,7 +127,7 @@ export class ExcelGeneratorService {
     console.log(
       `🎉 HYBRID APPROACH COMPLETE: Multi-sheet report saved: ${outputPath}`
     );
-    const batchfilePath = outputPath.replace('.xlsx', '-BATCHFILE.xlsx');
+    const batchfilePath = outputPath.replace('.xlsx', '-COVERBACKFILE.xlsx');
     await this.generateBatchfile(formData, batchfilePath);
     console.log(`📋 Batchfile generated: ${batchfilePath}`);
   }

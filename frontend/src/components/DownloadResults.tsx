@@ -50,10 +50,10 @@ const DownloadResults: React.FC<DownloadResultsProps> = ({ results, isLoading })
     document.body.removeChild(link);
   };
 
-  const handleDownloadBatchfile = (mainFilename: string) => {
+  const handleDownloadCoverBackfile = (mainFilename: string) => {
     // Convert "Inspection-Report-PROJECT-2026-02-12.xlsx" 
     // to "Inspection-Report-PROJECT-2026-02-12-BATCHFILE.xlsx"
-    const batchfileName = mainFilename.replace('.xlsx', '-BATCHFILE.xlsx');
+    const batchfileName = mainFilename.replace('.xlsx', '-COVERBACKFILE.xlsx');
     
     const downloadUrl = excelApi.downloadFile(batchfileName);
     const link = document.createElement('a');
@@ -76,7 +76,7 @@ const DownloadResults: React.FC<DownloadResultsProps> = ({ results, isLoading })
         marginBottom: '2rem',
         color: '#166534'
       }}>
-        <strong>Success:</strong> {results.message} and 1 batch file
+        <strong>Success:</strong> {results.message} and 1 Cover Back file
         <br />
         <strong>Generated:</strong> Multi-sheet Excel file with {results.files.length > 0 ? 'multiple inspection sheets' : 'inspection data'}
         <br />
@@ -119,17 +119,17 @@ const DownloadResults: React.FC<DownloadResultsProps> = ({ results, isLoading })
             
             {/* Batchfile Button */}
             <button
-              onClick={() => handleDownloadBatchfile(results.files[0])}
+              onClick={() => handleDownloadCoverBackfile(results.files[0])}
               className="btn btn-primary"
               style={{ fontSize: '1.2rem', padding: '1rem 2rem', marginBottom: '1rem' }}
             >
-              📋 Download Batchfile
+              📋 Download CoverBack File
             </button>
             
             <div style={{ marginTop: '1rem' }}>
               <strong>Main File:</strong> <span style={{ color: '#666', fontSize: '0.9rem' }}>{results.files[0]}</span>
               <br />
-              <strong>Batchfile:</strong> <span style={{ color: '#666', fontSize: '0.9rem' }}>{results.files[0].replace('.xlsx', '-BATCHFILE.xlsx')}</span>
+              <strong>CoverBack file:</strong> <span style={{ color: '#666', fontSize: '0.9rem' }}>{results.files[0].replace('.xlsx', '-COVERBACKFILE.xlsx')}</span>
             </div>
           </div>
         )}
