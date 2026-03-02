@@ -19,15 +19,19 @@ jobs:
           script: |
             sudo apt-get update -y
 
+            
             DEPLOY_BASE="/var/www/${{ secrets.DOMAIN }}"
-            sudo mkdir -p "$DEPLOY_BASE"
+            TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+            RELEASE_DIR="$DEPLOY_BASE/releases/$TIMESTAMP"
+            CURRENT_LINK="$DEPLOY_BASE/current"
+            sudo mkdir -p "$DEPLOY_BASE/releases"
             sudo chown -R ${{ secrets.USERNAME }}:${{ secrets.USERNAME }} "$DEPLOY_BASE"
             sudo chmod -R 770 "$DEPLOY_BASE"
             sudo find "$DEPLOY_BASE" -type d -exec chmod 2770 {} \;
 
             # Clone the repository into the release directory
-            git clone -b master https://github.com/nickfff-dev/dimensions-inspection-report-generator.git "$DEPLOY_BASE"
-            cd "$DEPLOY_BASE"
+            git clone -b master https://github.com/nickfff-dev/dimensions-inspection-report-generator.git "$RELEASE_DIR"
+            cd "$RELEASE_DIR"
 
             
             # Setup Node environment
@@ -46,10 +50,10 @@ jobs:
             fi
 
             # Permissions
-            sudo chown -R ${{ secrets.USERNAME }}:${{ secrets.USERNAME }} "$DEPLOY_BASE"
-            sudo chmod -R u+rwX "$DEPLOY_BASE"
-            sudo chmod -R g+rwX "$DEPLOY_BASE"
-            sudo find "$DEPLOY_BASE" -type d -exec chmod 2770 {} \;
+            sudo chown -R ${{ secrets.USERNAME }}:${{ secrets.USERNAME }} "$RELEASE_DIR"
+            sudo chmod -R u+rwX "$RELEASE_DIR"
+            sudo chmod -R g+rwX "$RELEASE_DIR"
+            sudo find "$RELEASE_DIR" -type d -exec chmod 2770 {} \;
 
             pnpm install
             pnpm build
@@ -59,15 +63,20 @@ jobs:
             fi
 
             # Set permissions for the release directory
-            sudo chown -R ${{ secrets.USERNAME }}:${{ secrets.USERNAME }} "$DEPLOY_BASE"
-            sudo chmod -R 770 "$DEPLOY_BASE"
-            sudo chmod -R g+rwX "$DEPLOY_BASE"
-            sudo find "$DEPLOY_BASE" -type d -exec chmod 2770 {} \;
+            sudo chown -R ${{ secrets.USERNAME }}:${{ secrets.USERNAME }} "$RELEASE_DIR"
+            sudo chmod -R 770 "$RELEASE_DIR"
+            sudo chmod -R g+rwX "$RELEASE_DIR"
+            sudo find "$RELEASE_DIR" -type d -exec chmod 2770 {} \;
+            ln -sfn "$RELEASE_DIR" "$CURRENT_LINK"
 
             # PM2 reload/start
             if pm2 ls | grep -qw '\s${{ secrets.DOMAIN }}'; then
-              pm2 reload ${{ secrets.DOMAIN }} --time --update-env --cwd "$DEPLOY_BASE"
+              pm2 reload ${{ secrets.DOMAIN }} --time --update-env --cwd "$CURRENT_LINK"
             else
-              pm2 start pnpm --time --cwd "$DEPLOY_BASE" --name "${{ secrets.DOMAIN }}" -- dev
+              pm2 start pnpm --time --cwd "$CURRENT_LINK" --name "${{ secrets.DOMAIN }}" -- dev
             fi
             pm2 save
+
+            # Clean up old releases, keeping last 3
+            cd "$DEPLOY_BASE/releases"
+            ls -1tr | head -n -3 | xargs -d '\n' rm -rf --

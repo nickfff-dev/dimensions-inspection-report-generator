@@ -10,7 +10,7 @@ build/
 
 # Generated files
 backend/generated/
-*.xlsx
+!backend/templates/
 !backend/templates/template.xlsx
 !backend/templates/coverback_template.xlsx
 
