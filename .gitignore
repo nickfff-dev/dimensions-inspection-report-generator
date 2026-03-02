@@ -12,6 +12,7 @@ build/
 backend/generated/
 *.xlsx
 !backend/templates/template.xlsx
+!backend/templates/coverback_template.xlsx
 
 # Environment files
 .env
