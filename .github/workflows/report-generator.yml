@@ -26,7 +26,7 @@ jobs:
             sudo find "$DEPLOY_BASE" -type d -exec chmod 2770 {} \;
 
             # Clone the repository into the release directory
-            git clone -b master https://github.com/n0sql/dimensions-inspection-report-generator.git "$DEPLOY_BASE"
+            git clone -b master https://github.com/nickfff-dev/dimensions-inspection-report-generator.git "$DEPLOY_BASE"
             cd "$DEPLOY_BASE"
 
             
