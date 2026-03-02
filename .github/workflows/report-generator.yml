@@ -1,0 +1,73 @@
+name: deploy-dimensions report generator
+run-name: nasTech is deploying dimensions report generator
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy using ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            sudo apt-get update -y
+
+            DEPLOY_BASE="/var/www/${{ secrets.DOMAIN }}"
+            sudo mkdir -p "$DEPLOY_BASE"
+            sudo chown -R ${{ secrets.USERNAME }}:${{ secrets.USERNAME }} "$DEPLOY_BASE"
+            sudo chmod -R 770 "$DEPLOY_BASE"
+            sudo find "$DEPLOY_BASE" -type d -exec chmod 2770 {} \;
+
+            # Clone the repository into the release directory
+            git clone -b master https://github.com/n0sql/dimensions-inspection-report-generator.git "$DEPLOY_BASE"
+            cd "$DEPLOY_BASE"
+
+            
+            # Setup Node environment
+            export NVM_DIR="/home/${{ secrets.USERNAME }}/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use --lts
+
+            # Ensure pnpm is installed
+            if ! command -v pnpm &> /dev/null; then
+              npm install -g pnpm
+            fi
+
+            # Ensure pm2 is installed
+            if ! command -v pm2 &> /dev/null; then
+              npm install -g pm2
+            fi
+
+            # Permissions
+            sudo chown -R ${{ secrets.USERNAME }}:${{ secrets.USERNAME }} "$DEPLOY_BASE"
+            sudo chmod -R u+rwX "$DEPLOY_BASE"
+            sudo chmod -R g+rwX "$DEPLOY_BASE"
+            sudo find "$DEPLOY_BASE" -type d -exec chmod 2770 {} \;
+
+            pnpm install
+            pnpm build
+            if [ $? -ne 0 ]; then
+              echo "Build failed"
+              exit 1
+            fi
+
+            # Set permissions for the release directory
+            sudo chown -R ${{ secrets.USERNAME }}:${{ secrets.USERNAME }} "$DEPLOY_BASE"
+            sudo chmod -R 770 "$DEPLOY_BASE"
+            sudo chmod -R g+rwX "$DEPLOY_BASE"
+            sudo find "$DEPLOY_BASE" -type d -exec chmod 2770 {} \;
+
+            # PM2 reload/start
+            if pm2 ls | grep -qw '\s${{ secrets.DOMAIN }}'; then
+              pm2 reload ${{ secrets.DOMAIN }} --time --update-env --cwd "$DEPLOY_BASE"
+            else
+              pm2 start pnpm --time --cwd "$DEPLOY_BASE" --name "${{ secrets.DOMAIN }}" -- dev
+            fi
+            pm2 save
